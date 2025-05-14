@@ -1,20 +1,24 @@
+import kagglehub
 import streamlit as st
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
+import os
 
 # ------------------- PAGE CONFIG -------------------
 st.set_page_config(page_title="🌍 Global Trade Dashboard", layout="wide")
 st.title("🌍 Global Commodity Trade Dashboard")
 
 # ------------------- LOAD DATA -------------------
-DATA_PATH = "commodity_trade_statistics_data.csv"
-
 @st.cache_data
 def load_data():
-    return pd.read_csv(DATA_PATH)
+    dataset_path = kagglehub.dataset_download("unitednations/global-commodity-trade-statistics")
+    files = os.listdir(dataset_path)
+    csv_file = [f for f in files if f.endswith(".csv")][0]  # pick first CSV
+    df = pd.read_csv(os.path.join(dataset_path, csv_file))
+    return df
 
 try:
     df = load_data()
@@ -94,5 +98,5 @@ try:
         st.subheader("📌 Descriptive Statistics")
         st.dataframe(filtered_df.describe(include="all"), use_container_width=True)
 
-except FileNotFoundError:
-    st.error(f"❌ File not found at `{DATA_PATH}`. Please verify the path and try again.")
+except Exception as e:
+    st.error(f"❌ Failed to load data: {e}")
